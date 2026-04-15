@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giroud–Han | Unpaved Road Designer</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --card: #1c2333;
+            --border: #30363d;
+            --blue: #0055AE;
+            --blue-dim: #001f4a;
+            --gold: #d29922;
+            --gold-dim: #3d2e0a;
+            --green: #3fb950;
+            --green-dim: #0d2d17;
+            --red: #D52B1E;
+            --red-dim: #3a0c08;
+            --text: #e6edf3;
+            --muted: #8b949e;
+            --mono: 'DM Mono', monospace;
+            --sans: 'DM Sans', sans-serif;
+            --display: 'Syne', sans-serif;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* ── HEADER ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            padding: 14px 40px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .logo-wrap img {
+            height: 100px;
+            width: auto;
+            max-width: 200px;
+            /* ← Limite la largeur max */
+            aspect-ratio: auto;
+            /* ← Conserve le ratio d'aspect */
+            filter: brightness(0) invert(1);
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 26px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-family: var(--display);
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        header span {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin-left: 4px;
+        }
+
+        /* ── LAYOUT ── */
+        .layout {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 0;
+            min-height: calc(100vh - 65px);
+        }
+
+        /* ── LEFT PANEL (inputs) ── */
+        .panel-left {
+            border-right: 1px solid var(--border);
+            padding: 32px 28px;
+            overflow-y: auto;
+            background: var(--surface);
+        }
+
+        .section-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .field-group {
+            margin-bottom: 28px;
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .field label .unit {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 14px;
+            transition: border-color 0.15s;
+            outline: none;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        .field select option {
+            background: var(--card);
+        }
+
+        .field .hint {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+            font-family: var(--mono);
+        }
+
+        /* Reinforcement radio selector */
+        .reinf-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .reinf-option {
+            position: relative;
+        }
+
+        .reinf-option input {
+            display: none;
+        }
+
+        .reinf-option label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            transition: all 0.15s;
+            color: var(--muted);
+        }
+
+        .reinf-option label .icon {
+            font-size: 20px;
+        }
+
+        .reinf-option input:checked+label {
+            border-color: var(--blue);
+            background: var(--blue-dim);
+            color: var(--blue);
+        }
+
+        .geogrid-field {
+            display: none;
+        }
+
+        .geogrid-field.visible {
+            display: block;
+        }
+
+        /* ── RUN BUTTON ── */
+        .run-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: -0.01em;
+            margin-top: 8px;
+        }
+
+        .run-btn:hover {
+            background: #0068d6;
+            transform: translateY(-1px);
+        }
+
+        .run-btn:active {
+            transform: translateY(0);
+        }
+
+        /* ── RIGHT PANEL (results) ── */
+        .panel-right {
+            padding: 32px 36px;
+            overflow-y: auto;
+            background: var(--bg);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 400px;
+            gap: 16px;
+            text-align: center;
+        }
+
+        .empty-state .big-icon {
+            font-size: 56px;
+            opacity: 0.3;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            font-size: 14px;
+            max-width: 280px;
+        }
+
+        /* ── RESULTS ── */
+        #results {
+            display: none;
+        }
+
+        .results-header {
+            margin-bottom: 28px;
+        }
+
+        .results-header h2 {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 4px;
+        }
+
+        .results-header .subtitle {
+            font-size: 13px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        /* outcome cards */
+        .outcome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .outcome-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .outcome-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--blue);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .outcome-card.green::before {
+            background: var(--green);
+        }
+
+        .outcome-card.gold::before {
+            background: var(--gold);
+        }
+
+        .outcome-card.red::before {
+            background: var(--red);
+        }
+
+        .outcome-card .card-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .outcome-card .card-value {
+            font-family: var(--display);
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .outcome-card .card-unit {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .outcome-card .card-sub {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* alert box */
+        .alert {
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            border: 1px solid;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .alert.info {
+            background: var(--blue-dim);
+            border-color: var(--blue);
+            color: #7dd3fc;
+        }
+
+        .alert.ok {
+            background: var(--green-dim);
+            border-color: var(--green);
+            color: #86efac;
+        }
+
+        .alert.warn {
+            background: var(--gold-dim);
+            border-color: var(--gold);
+            color: #fcd34d;
+        }
+
+        .alert.error {
+            background: var(--red-dim);
+            border-color: var(--red);
+            color: #fca5a5;
+        }
+
+        .alert .alert-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* iteration table */
+        .block {
+            margin-bottom: 28px;
+        }
+
+        .block-title {
+            font-family: var(--display);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .block-title .tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 400;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--blue-dim);
+            color: var(--blue);
+            letter-spacing: 0.06em;
+        }
+
+        table.iter-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        table.iter-table th {
+            background: var(--card);
+            padding: 9px 12px;
+            text-align: right;
+            font-weight: 500;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.04em;
+            font-size: 11px;
+        }
+
+        table.iter-table th:first-child {
+            text-align: left;
+        }
+
+        table.iter-table td {
+            padding: 9px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        table.iter-table td:first-child {
+            text-align: left;
+            color: var(--muted);
+        }
+
+        table.iter-table tr.converged td {
+            color: var(--green);
+        }
+
+        table.iter-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* param summary */
+        .param-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .param-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 12px;
+            gap: 8px;
+        }
+
+        .param-row .pk {
+            color: var(--muted);
+            font-family: var(--mono);
+            flex-shrink: 0;
+        }
+
+        .param-row .pv {
+            color: var(--text);
+            font-family: var(--mono);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        /* comparison bar */
+        .comparison {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 28px;
+        }
+
+        .comp-row {
+            margin-bottom: 14px;
+        }
+
+        .comp-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .comp-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .comp-header .comp-label {
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        .comp-header .comp-val {
+            color: var(--text);
+            font-family: var(--mono);
+            font-weight: 500;
+        }
+
+        .bar-track {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .bar-fill.unreinf {
+            background: var(--muted);
+        }
+
+        .bar-fill.reinf {
+            background: var(--green);
+        }
+
+        /* formula display */
+        .formula-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--blue);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--blue);
+            margin-bottom: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* responsive */
+        @media (max-width: 200px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-left {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 20px 0;
+        }
+
+        /* scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* ── PDF EXPORT BUTTON ── */
+        .pdf-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--red);
+            border: 1px solid var(--red);
+            border-radius: 10px;
+            font-family: var(--display);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+            letter-spacing: -0.01em;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pdf-btn:hover {
+            background: var(--red-dim);
+            transform: translateY(-1px);
+        }
+
+        .pdf-btn:active {
+            transform: translateY(0);
+        }
+
+        .pdf-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ── PROJECT INFO FIELDS ── */
+        .field textarea {
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text);
+            font-family: var(--mono);
+            font-size: 13px;
+            transition: border-color 0.15s;
+            outline: none;
+            resize: vertical;
+            min-height: 60px;
+            line-height: 1.5;
+        }
+
+        .field textarea:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Embedded logo data URL (Logo.png, base64) -->
+    <script>
+        var LOGO_DATA_URL = 'data:image/png;base64,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';
+    </script>
+    <header>
+        <div class="logo-wrap">
+            <img id="header-logo" src="" alt="Geoquest">
+        </div>
+        <script>document.getElementById('header-logo').src = LOGO_DATA_URL;</script>
+        <div class="header-divider"></div>
+        <h1>Giroud–Han Road Designer</h1>
+        <span>2004 Calibrated Method</span>
+    </header>
+
+    <div class="layout">
+
+        <!-- ════ LEFT — INPUTS ════ -->
+        <div class="panel-left">
+
+            <div class="section-label">Project Information</div>
+            <div class="field-group">
+                <div class="field">
+                    <label>Project Name</label>
+                    <input type="text" id="proj-name" placeholder="e.g. Site Access Road — Phase 1">
+                </div>
+                <div class="field">
+                    <label>Location</label>
+                    <input type="text" id="proj-location" placeholder="e.g. Site A, Northern Region">
+                </div>
+                <div class="field">
+                    <label>Client</label>
+                    <input type="text" id="proj-client" placeholder="e.g. ACME Construction Ltd.">
+                </div>
+                <div class="field">
+                    <label>Engineer / Prepared by</label>
+                    <input type="text" id="proj-engineer" placeholder="e.g. J. Dupont, P.Eng.">
+                </div>
+                <div class="field">
+                    <label>Comments / Notes</label>
+                    <textarea id="proj-comments" placeholder="Any design notes, assumptions or context..."></textarea>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-label">Traffic & Loading</div>
+            <div class="field-group">
+                <div class="field">
+                    <label>Wheel Load P <span class="unit">kN</span></label>
+                    <input type="number" id="P" value="40" min="0" step="1">
+                    <div class="hint">Load per wheel (single axle or dual-wheel set)</div>
+                </div>
+                <div class="field">
+                    <label>Tire Contact Pressure p <span class="unit">kPa</span></label>
+                    <input type="number" id="p_tire" value="550" min="0" step="10">
+                    <div class="hint">≈ tire inflation pressure</div>
+                </div>
+                <div class="field">
+                    <label>Number of Axle Passes N <span class="unit">—</span></label>
+                    <input type="number" id="N" value="5000" min="1" step="100">
+                    <div class="hint">Design horizon (max 100,000 recommended)</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-label">Soil & Materials</div>
+            <div class="field-group">
+                <div class="field">
+                    <label>Subgrade CBR <span class="unit">—</span></label>
+                    <input type="number" id="CBRsg" value="1.0" min="0.1" max="5" step="0.1">
+                    <div class="hint">Must be &lt; 5.0 for method validity</div>
+                </div>
+                <div class="field">
+                    <label>Base Course CBR <span class="unit">—</span></label>
+                    <input type="number" id="CBRbc" value="15" min="1" step="1">
+                    <div class="hint">After compaction; ≥ 15 recommended</div>
+                </div>
+                <div class="field">
+                    <label>Allowable Rut Depth s <span class="unit">mm</span></label>
+                    <input type="number" id="s" value="75" min="50" max="100" step="5">
+                    <div class="hint">50 to 100 mm (typical: 75 mm)</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+            <div class="section-label">Reinforcement Type</div>
+            <div class="reinf-selector">
+                <div class="reinf-option">
+                    <input type="radio" name="reinf" id="r-none" value="none" checked>
+                    <label for="r-none"><span class="icon">🪨</span>None</label>
+                </div>
+                <div class="reinf-option">
+                    <input type="radio" name="reinf" id="r-gtx" value="geotextile">
+                    <label for="r-gtx"><span class="icon">🧵</span>Geotextile</label>
+                </div>
+                <div class="reinf-option">
+                    <input type="radio" name="reinf" id="r-ggd" value="geogrid">
+                    <label for="r-ggd"><span class="icon">⬛</span>Geogrid</label>
+                </div>
+            </div>
+
+            <div class="field geogrid-field" id="J-field">
+                <label>Aperture Stability Modulus J <span class="unit">m·N/°</span></label>
+                <input type="number" id="J" value="0.65" min="0" max="0.79" step="0.01">
+                <div class="hint">0 &lt; J &lt; 0.8 — e.g. B11 = 0.32, B12 = 0.65</div>
+            </div>
+
+            <div class="divider"></div>
+            <button class="run-btn" onclick="runDesign()">▶ Run Design Calculation</button>
+            <button class="pdf-btn" id="pdf-btn" onclick="exportPDF()" disabled>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+                Export Design Report (PDF)
+            </button>
+        </div>
+
+        <!-- ════ RIGHT — RESULTS ════ -->
+        <div class="panel-right">
+
+            <div class="empty-state" id="empty-state">
+                <div class="big-icon">🛣</div>
+                <p style="font-family:var(--display);font-size:16px;font-weight:700;color:var(--text);opacity:0.5">Enter
+                    parameters and run the calculation</p>
+                <p>The app will check all validity conditions and compute the required base course thickness step by
+                    step.</p>
+            </div>
+
+            <div id="results">
+
+                <div class="results-header">
+                    <h2 id="res-title">Design Results</h2>
+                    <div class="subtitle" id="res-subtitle"></div>
+                </div>
+
+                <!-- Alerts -->
+                <div id="alerts-container"></div>
+
+                <!-- Outcome cards -->
+                <div class="outcome-grid" id="outcome-grid"></div>
+
+                <!-- Comparison bar (only when reinforced) -->
+                <div id="comparison-block" class="block" style="display:none">
+                    <div class="block-title">Thickness Comparison <span class="tag">REINFORCEMENT BENEFIT</span></div>
+                    <div class="comparison" id="comparison-content"></div>
+                </div>
+
+                <!-- Preliminary calcs -->
+                <div class="block">
+                    <div class="block-title">Preliminary Calculations</div>
+                    <div class="param-grid" id="prelim-grid"></div>
+                </div>
+
+                <!-- Step 1 check -->
+                <div class="block" id="step1-block">
+                    <div class="block-title">Step 1 — Bearing Capacity Check (h = 0)</div>
+                    <div id="step1-content"></div>
+                </div>
+
+                <!-- Iterations unreinforced -->
+                <div class="block" id="iter-unreinf-block">
+                    <div class="block-title">Step 2 — Iterations: Unreinforced <span class="tag">J=0 · Nc=3.14</span>
+                    </div>
+                    <div id="iter-unreinf-content"></div>
+                </div>
+
+                <!-- Iterations reinforced -->
+                <div class="block" id="iter-reinf-block" style="display:none">
+                    <div class="block-title" id="iter-reinf-title">Step 2 — Iterations: Reinforced</div>
+                    <div id="iter-reinf-content"></div>
+                </div>
+
+                <!-- Final check m -->
+                <div class="block" id="mcheck-block">
+                    <div class="block-title">Step 3 — Verify m ≤ 1.0</div>
+                    <div id="mcheck-content"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        // ── Show/hide geogrid J field
+        document.querySelectorAll('input[name="reinf"]').forEach(r => {
+            r.addEventListener('change', () => {
+                const jf = document.getElementById('J-field');
+                jf.classList.toggle('visible', r.value === 'geogrid' && r.checked);
+            });
+        });
+
+        // ── Cross-section illustration helper
+        function drawIllustration(doc, bx, by, boxW, boxH, caseType, h_u, h_r, reinfType, scaleFactor, CBRsg_val, C, isSelected) {
+            const titleH = 9;
+            const contentTopPad = 1;
+            const vehicleAreaH = 13;
+            const deepH = 5;
+            const bottomPad = 2;
+            const reinfH = (caseType === 'reinforced') ? 0.9 : 0;
+            const h_bc = (caseType === 'subgrade') ? 0 : (caseType === 'unreinforced' ? h_u : h_r);
+            const bcH = (h_bc || 0) * scaleFactor;
+            const contentH = boxH - titleH - contentTopPad;
+            const sgH = Math.max(contentH - vehicleAreaH - bcH - reinfH - deepH - bottomPad, 10);
+
+            // Title block color
+            const titleBg = caseType === 'subgrade' ? [180, 55, 40]
+                : caseType === 'unreinforced' ? C.geoBlue
+                    : [0, 110, 60];
+            doc.setFillColor(...titleBg);
+            doc.roundedRect(bx, by, boxW, titleH, 2, 2, 'F');
+            doc.setFontSize(6.8); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+            const titleLabel = caseType === 'subgrade' ? 'SUBGRADE ONLY'
+                : caseType === 'unreinforced' ? 'UNREINFORCED'
+                    : (reinfType === 'geotextile' ? 'GEOTEXTILE' : 'GEOGRID') + ' REINFORCED';
+            doc.text(titleLabel, bx + boxW / 2, by + 5.2, { align: 'center' });
+
+            const cx = bx + 2;
+            const cy = by + titleH + contentTopPad;
+            const cw = boxW - 4;
+            const surfaceY = cy + vehicleAreaH;
+            const georeinfY = surfaceY + bcH;
+            const sgStartY = (caseType === 'reinforced') ? georeinfY : georeinfY + reinfH;
+
+            // Sky
+            doc.setFillColor(215, 232, 252);
+            doc.rect(cx, cy, cw, vehicleAreaH, 'F');
+
+            // Base course
+            if (bcH > 0) {
+                doc.setFillColor(168, 147, 116);
+                doc.rect(cx, surfaceY, cw, bcH, 'F');
+                doc.setFillColor(140, 120, 90);
+                for (let dx = cx + 2.5; dx < cx + cw - 1.5; dx += 5.5) {
+                    for (let dy = surfaceY + 2; dy < surfaceY + bcH - 1.5; dy += 4.5) {
+                        doc.circle(dx + (dy % 2) * 1.5, dy, 0.55, 'F');
+                    }
+                }
+            }
+
+            // Geosynthetic reinforcement line
+            if (caseType === 'reinforced' && bcH >= 0) {
+                doc.setFillColor(...C.geoRed);
+                doc.rect(cx, georeinfY - 0.4, cw, reinfH, 'F');
+            }
+
+            // Subgrade
+            doc.setFillColor(138, 110, 83);
+            doc.rect(cx, sgStartY, cw, sgH, 'F');
+            doc.setDrawColor(112, 87, 63); doc.setLineWidth(0.18);
+            for (let i = 0; i < cw + sgH + 6; i += 6) {
+                const lx1 = cx + i; const ly1 = sgStartY;
+                const lx2 = cx + i - sgH - 3; const ly2 = sgStartY + sgH + 3;
+                doc.line(Math.max(cx, lx2), lx2 < cx ? sgStartY + (cx - lx2) : sgStartY, Math.min(cx + cw, lx1), lx1 > cx + cw ? sgStartY + (lx1 - (cx + cw)) : sgStartY + sgH);
+            }
+
+            // Deep subgrade
+            doc.setFillColor(105, 82, 58);
+            doc.rect(cx, sgStartY + sgH, cw, deepH, 'F');
+
+            // Surface line
+            doc.setDrawColor(55, 65, 82); doc.setLineWidth(caseType === 'subgrade' ? 0.3 : 0.7);
+            if (caseType === 'subgrade') {
+                // Rutted surface
+                const truckX_est = cx + (cw - 28) / 2;
+                doc.line(cx, surfaceY, truckX_est, surfaceY);
+                doc.line(truckX_est, surfaceY, truckX_est + 3, surfaceY + 2.5);
+                doc.line(truckX_est + 3, surfaceY + 2.5, truckX_est + 25, surfaceY + 2.5);
+                doc.line(truckX_est + 25, surfaceY + 2.5, truckX_est + 28, surfaceY);
+                doc.line(truckX_est + 28, surfaceY, cx + cw, surfaceY);
+            } else {
+                doc.line(cx, surfaceY, cx + cw, surfaceY);
+            }
+
+            // Vehicle
+            const truckW = Math.min(cw * 0.62, 28);
+            const truckBodyH = 6.5;
+            const wheelR = 3.2;
+            const truckXc = cx + (cw - truckW) / 2;
+            const wheelY = surfaceY;
+            const bodyY = wheelY - wheelR - truckBodyH + 1.5;
+
+            doc.setFillColor(45, 56, 72);
+            doc.roundedRect(truckXc, bodyY, truckW * 0.73, truckBodyH, 1.5, 1.5, 'F');
+            doc.setFillColor(58, 70, 90);
+            doc.roundedRect(truckXc + truckW * 0.73 - 1, bodyY - 3, truckW * 0.27 + 1, truckBodyH + 3, 1.5, 1.5, 'F');
+            doc.setFillColor(185, 212, 238);
+            doc.rect(truckXc + truckW * 0.74, bodyY - 1.8, truckW * 0.22, 3, 'F');
+
+            doc.setFillColor(15, 15, 20);
+            doc.circle(truckXc + 4.5, wheelY - 2, wheelR, 'F');
+            doc.circle(truckXc + truckW - 4.5, wheelY - 2, wheelR, 'F');
+            doc.setFillColor(75, 75, 85);
+            doc.circle(truckXc + 4.5, wheelY - 2, 1.4, 'F');
+            doc.circle(truckXc + truckW - 4.5, wheelY - 2, 1.4, 'F');
+
+            // Load arrow
+            doc.setDrawColor(...C.geoRed); doc.setLineWidth(0.6);
+            const arrX = bx + boxW / 2; const arrY0 = by + titleH + 1;
+            doc.line(arrX, arrY0, arrX, arrY0 + 3);
+            doc.line(arrX - 1.5, arrY0 + 1.8, arrX, arrY0 + 3.5);
+            doc.line(arrX + 1.5, arrY0 + 1.8, arrX, arrY0 + 3.5);
+
+            // ── Labels ──
+            doc.setFontSize(5.8); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+            doc.text('Subgrade', cx + cw / 2, sgStartY + Math.min(sgH / 2 + 1, 8), { align: 'center' });
+            doc.setFontSize(5.3); doc.setFont('helvetica', 'normal');
+            {
+                const mainSz = 5.3, subSz = 3.6;
+                const lbl = ' = ' + CBRsg_val;
+                doc.setFontSize(mainSz);
+                const baseW = doc.getTextWidth('CBR');
+                doc.setFontSize(subSz);
+                const subW = doc.getTextWidth('sg');
+                doc.setFontSize(mainSz);
+                const restW = doc.getTextWidth(lbl);
+                const totalW = baseW + subW + restW;
+                const ty = sgStartY + Math.min(sgH / 2 + 5.5, 13);
+                const tx = cx + cw / 2 - totalW / 2;
+                doc.text('CBR', tx, ty);
+                doc.setFontSize(subSz);
+                doc.text('sg', tx + baseW, ty + 1.2);
+                doc.setFontSize(mainSz);
+                doc.text(lbl, tx + baseW + subW, ty);
+            }
+
+            if (bcH > 0) {
+                doc.setFontSize(5.8); doc.setFont('helvetica', 'bold'); doc.setTextColor(55, 42, 20);
+                if (bcH >= 5) doc.text('Base Course', cx + cw / 2, surfaceY + bcH / 2 + 1.5, { align: 'center' });
+                // Dimension annotation — right side tick marks
+                const dx = cx + cw - 13;
+                doc.setDrawColor(80, 95, 120); doc.setLineWidth(0.28);
+                doc.line(dx, surfaceY, dx + 3.5, surfaceY);
+                doc.line(dx, surfaceY + bcH, dx + 3.5, surfaceY + bcH);
+                doc.line(dx + 1.8, surfaceY, dx + 1.8, surfaceY + bcH);
+                doc.setFontSize(6); doc.setFont('helvetica', 'bold'); doc.setTextColor(...C.geoBlue);
+                const hLabel = ((h_bc || 0) * 100).toFixed(1) + ' cm';
+                doc.text(hLabel, dx + 4, surfaceY + bcH / 2 + 1.5, { align: 'left' });
+            }
+
+            if (caseType === 'reinforced' && reinfH > 0) {
+                doc.setFontSize(5.3); doc.setFont('helvetica', 'bold ');
+                doc.setTextColor(...C.geoRed);
+                const rLabel = reinfType === 'geotextile' ? '— Geotextile —' : '— Geogrid —';
+                doc.text(rLabel, cx + cw / 2, georeinfY - 1, { align: 'center' });
+            }
+
+            if (caseType === 'subgrade') {
+                doc.setFontSize(5.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(139, 0, 0);
+                doc.text('No base course', cx + cw / 2, surfaceY + 32, { align: 'center' });
+                doc.text('Excessive rutting', cx + cw / 2, surfaceY + 36, { align: 'center' });
+            }
+
+            // Box border
+            doc.setDrawColor(...titleBg); doc.setLineWidth(0.45);
+            doc.roundedRect(bx, by, boxW, boxH, 2, 2, 'S');
+
+            // Highlight selected box
+            if (isSelected) {
+                const selColor = [255, 176, 0];
+                doc.setDrawColor(...selColor); doc.setLineWidth(1.8);
+                doc.roundedRect(bx, by, boxW, boxH, 2, 2, 'S');
+                const badgeW = 30, badgeH = 5.5;
+                doc.setFillColor(...selColor);
+                doc.roundedRect(bx + (boxW - badgeW) / 2, by + boxH - badgeH - 1.5, badgeW, badgeH, 1, 1, 'F');
+                doc.setFontSize(5.3); doc.setFont('helvetica', 'bold'); doc.setTextColor(40, 25, 0);
+                doc.text('YOUR DESIGN', bx + boxW / 2, by + boxH - 3.2, { align: 'center' });
+            }
+        }
+
+        // ── PDF Export
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const W = 210, H = 297;
+            const marginL = 18, marginR = 18, contentW = W - marginL - marginR;
+
+            // ── Geoquest brand colors
+            const C = {
+                geoBlue: [0, 83, 174],
+                geoRed: [213, 43, 30],
+                navy: [0, 22, 68],
+                lightBlue: [228, 238, 255],
+                muted: [110, 125, 148],
+                darktext: [28, 34, 44],
+                white: [255, 255, 255],
+                lightbg: [245, 248, 254],
+                border: [195, 208, 228],
+                green: [0, 120, 65],
+                gold: [195, 140, 25],
+            };
+
+            // ── Helper functions
+            function setFill(col) { doc.setFillColor(...col); }
+            function setStroke(col) { doc.setDrawColor(...col); }
+            function setTxt(col) { doc.setTextColor(...col); }
+            function rect(x, y, w, h, r = 0) { doc.roundedRect(x, y, w, h, r, r, 'F'); }
+            function hline(y, col) { col = col || C.border; setStroke(col); doc.setLineWidth(0.3); doc.line(marginL, y, W - marginR, y); }
+            function label(txt, x, y, sz, col, align) {
+                sz = sz || 7; col = col || C.muted; align = align || 'left';
+                doc.setFontSize(sz); doc.setFont('helvetica', 'normal'); setTxt(col);
+                doc.text(txt, x, y, { align });
+            }
+            function bold(txt, x, y, sz, col, align) {
+                sz = sz || 9; col = col || C.darktext; align = align || 'left';
+                doc.setFontSize(sz); doc.setFont('helvetica', 'bold'); setTxt(col);
+                doc.text(txt, x, y, { align });
+            }
+            function pageFooter(page, total) {
+                setFill(C.navy); rect(0, H - 12, W, 12);
+                setFill(C.geoRed); rect(0, H - 12, W, 1.5);
+                label('Giroud–Han Unpaved Road Designer  ·  Generated by Geoquest Design Tool', W / 2, H - 4.5, 6.2, [160, 185, 225], 'center');
+                label('Page ' + page + ' of ' + total, W - marginR, H - 4.5, 6.2, [160, 185, 225], 'right');
+            }
+
+            // ── Read form values
+            const P = parseFloat(document.getElementById('P').value);
+            const p_tire = parseFloat(document.getElementById('p_tire').value);
+            const N = parseFloat(document.getElementById('N').value);
+            const CBRsg = parseFloat(document.getElementById('CBRsg').value);
+            const CBRbc = parseFloat(document.getElementById('CBRbc').value);
+            const s = parseFloat(document.getElementById('s').value);
+            const reinf = document.querySelector('input[name="reinf"]:checked').value;
+            const J = reinf === 'geogrid' ? parseFloat(document.getElementById('J').value) : 0;
+            const projName = document.getElementById('proj-name').value || '—';
+            const projLocation = document.getElementById('proj-location').value || '—';
+            const projClient = document.getElementById('proj-client').value || '—';
+            const projEngineer = document.getElementById('proj-engineer').value || '—';
+            const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            // ── Compute results
+            const r_val = calcR(P, p_tire);
+            const RE = calcRE(CBRbc, CBRsg);
+            const fE = calcFE(RE);
+            const Nc_u = 3.14;
+            const Nc_r = reinf === 'none' ? 5.14 : (reinf === 'geotextile' ? 5.14 : 5.71);
+            const J_r = reinf === 'geogrid' ? J : 0;
+            const reinfType = reinf === 'none' ? 'geotextile' : reinf;
+
+            const res_u = iterate(P, p_tire, N, s, r_val, fE, Nc_u, 0, CBRsg);
+            const h_u = res_u.h_final;
+            const m_u = h_u ? calcM(s, h_u, r_val) : null;
+
+            // Always compute reinforced (fallback to geotextile for illustration if user selected 'none')
+            const res_r = iterate(P, p_tire, N, s, r_val, fE, Nc_r, J_r, CBRsg);
+            const h_r_calc = res_r.h_final;
+            const h_r_show = (reinf !== 'none') ? h_r_calc : h_r_calc; // always use for illustrations
+            const m_r = h_r_calc ? calcM(s, h_r_calc, r_val) : null;
+
+            // ── Use embedded Base64 logo
+            const logoDataUrl = (typeof LOGO_DATA_URL !== 'undefined') ? LOGO_DATA_URL : null;
+
+            // ═══════════════════════════════
+            // PAGE 1 — COVER / PROJECT INFO
+            // ═══════════════════════════════
+
+            // Header band
+            setFill(C.navy); rect(0, 0, W, 50);
+            // Blue accent stripe
+            setFill(C.geoBlue); rect(0, 54, W, 4);
+            // Red thin stripe
+            setFill(C.geoRed); rect(0, 56.5, W, 1.5);
+
+            // Logo
+            if (logoDataUrl) {
+                // aspect 316:50 → 44mm wide = 6.96mm tall
+                doc.addImage(logoDataUrl, 'PNG', marginL - 5, 5, 44, 31.14);
+            } else {
+                setFill(C.white); rect(marginL, 12, 36, 13, 2);
+                doc.setFontSize(10); doc.setFont('helvetica', 'bold'); setTxt(C.geoBlue);
+                doc.text('GEOQUEST', marginL + 18, 20.5, { align: 'center' });
+            }
+
+            // Title
+            doc.setFontSize(19); doc.setFont('helvetica', 'bold'); setTxt(C.white);
+            doc.text('Giroud–Han Design Report', marginL + 45, 22);
+            doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); setTxt([170, 195, 235]);
+            doc.text('Unpaved Road Base Course Design  ·  2004 Calibrated Method', marginL + 45, 30);
+
+            // Date badge
+            setFill([0, 40, 110]); rect(W - marginR - 30, 12, 38, 14, 2);
+            setFill(C.geoRed); rect(W - marginR - 30, 12, 38, 3, 2);
+            setFill(C.geoRed); rect(W - marginR - 30, 13.5, 38, 1.5);
+            label('REPORT DATE', W - marginR - 12, 19, 6.2, [160, 185, 225], 'center');
+            bold(today, W - marginR - 12, 22.5, 7.5, [220, 235, 255], 'center');
+
+            // ── Decorative cover illustration (road cross-section banner)
+            const iy = 64;
+            // Sky
+            setFill([215, 232, 252]); rect(marginL, iy, contentW, 12, 2);
+            // Road surface
+            setFill([65, 75, 92]); rect(marginL, iy + 12, contentW, 6);
+            // Road dashes
+            setFill(C.white);
+            for (let x = marginL + 10; x < W - marginR - 10; x += 14) rect(x, iy + 14.5, 8, 1.5, 0.5);
+            // Geosynthetic line
+            setFill(C.geoRed); rect(marginL, iy + 25.5, contentW, 1.2);
+            // Base course
+            setFill([155, 135, 108]); rect(marginL, iy + 17.5, contentW, 8);
+            // Subgrade
+            setFill([125, 98, 74]); rect(marginL, iy + 26.5, contentW, 5);
+            setFill([100, 78, 57]); rect(marginL, iy + 29.5, contentW, 4, 0);
+            // Vehicle
+            setFill([30, 40, 58]); rect(marginL + contentW / 2 - 20, iy + 1, 40, 11, 2);
+            setFill([22, 32, 50]); rect(marginL + contentW / 2 - 24, iy + 7, 48, 5, 1.5);
+            setFill([10, 12, 18]);
+            doc.circle(marginL + contentW / 2 - 15, iy + 13, 4, 'F');
+            doc.circle(marginL + contentW / 2 + 15, iy + 13, 4, 'F');
+            setFill([65, 72, 85]);
+            doc.circle(marginL + contentW / 2 - 15, iy + 13, 1.3, 'F');
+            doc.circle(marginL + contentW / 2 + 15, iy + 13, 1.3, 'F');
+            // Layer labels
+            label('Road Surface', marginL + 3, iy + 14, 6.2, C.white);
+            label('Geosynthetic', marginL + 3, iy + 25, 5.5, C.geoRed);
+            label('Base Course', marginL + 3, iy + 20, 6.2, [240, 228, 208]);
+            label('Subgrade', marginL + 3, iy + 28.5, 6.2, [220, 205, 185]);
+
+            // ── Project Information Card
+            const piY = iy + 38;
+            setFill(C.lightbg); rect(marginL, piY, contentW, 72, 3);
+            setFill(C.geoBlue); rect(marginL, piY, contentW, 9, 2);
+            setFill(C.geoBlue); rect(marginL, piY + 5, contentW, 4);
+            doc.setFontSize(8); doc.setFont('helvetica', 'bold'); setTxt(C.white);
+            doc.text('PROJECT INFORMATION', marginL + 6, piY + 6.5);
+
+            const infoRows2 = [
+                ['Project', projName],
+                ['Location', projLocation],
+                ['Client', projClient],
+                ['Prepared by', projEngineer],
+            ];
+            let ry2 = piY + 17;
+            infoRows2.forEach(([k, v], i) => {
+                if (i % 2 === 0) { setFill([235, 241, 252]); rect(marginL + 3, ry2 - 5, contentW - 6, 10, 1); }
+                label(k.toUpperCase(), marginL + 8, ry2 + 0.5, 6.3, C.muted);
+                bold(v, marginL + 52, ry2 + 0.5, 8, C.darktext);
+                ry2 += 12;
+            });
+
+            // Key parameters summary strip
+            const kpY = piY + 74;
+            setFill([235, 241, 254]); rect(marginL, kpY, contentW, 10, 2);
+            setStroke(C.border); doc.setLineWidth(0.3);
+            doc.roundedRect(marginL, kpY, contentW, 10, 2, 2, 'S');
+            const kpItems = [
+                { text: `P = ${P} kN` },
+                { text: `p = ${p_tire} kPa` },
+                { text: `N = ${N}` },
+                { base: 'CBR', sub: 'sg', value: `${CBRsg}` },
+                { base: 'CBR', sub: 'bc', value: `${CBRbc}` },
+                { text: `s = ${s} mm` }
+            ];
+            const kpSpacing = contentW / kpItems.length;
+            kpItems.forEach((item, i) => {
+                const cx = marginL + kpSpacing * i + kpSpacing / 2;
+                const cy = kpY + 6.2;
+                if (item.text) {
+                    doc.setFontSize(7); doc.setFont('helvetica', 'bold'); setTxt(C.geoBlue);
+                    doc.text(item.text, cx, cy, { align: 'center' });
+                } else {
+                    const mainSz = 7, subSz = 4.8;
+                    doc.setFontSize(mainSz); doc.setFont('helvetica', 'bold'); setTxt(C.geoBlue);
+                    const baseW = doc.getTextWidth(item.base);
+                    doc.setFontSize(subSz); doc.setFont('helvetica', 'bold');
+                    const subW = doc.getTextWidth(item.sub);
+                    doc.setFontSize(mainSz);
+                    const restW = doc.getTextWidth(` = ${item.value}`);
+                    const startX = cx - (baseW + subW + restW) / 2;
+                    doc.setFontSize(mainSz); setTxt(C.geoBlue);
+                    doc.text(item.base, startX, cy);
+                    doc.setFontSize(subSz);
+                    doc.text(item.sub, startX + baseW, cy + 1.5);
+                    doc.setFontSize(mainSz);
+                    doc.text(` = ${item.value}`, startX + baseW + subW, cy);
+                }
+            });
+
+            // ── Methodology note
+            const methY = kpY + 14;
+            setFill(C.lightBlue); rect(marginL, methY, contentW, 24, 3);
+            setStroke(C.geoBlue); doc.setLineWidth(0.5);
+            doc.roundedRect(marginL, methY, contentW, 24, 3, 3, 'S');
+            setFill(C.geoBlue); rect(marginL, methY, 4, 24, 2);
+            setFill(C.geoBlue); rect(marginL + 2, methY, 2, 24);
+            doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); setTxt([15, 45, 115]);
+            doc.text('METHODOLOGY — Giroud–Han (2004)', marginL + 10, methY + 7);
+            doc.setFontSize(7); doc.setFont('helvetica', 'normal'); setTxt([35, 60, 105]);
+            const methodText2 = 'This report uses the Giroud–Han (2004) calibrated empirical method for unpaved road design. The method determines the required base course thickness h for a given wheel load P, tire contact pressure p, number of axle passes N, and subgrade/base CBR values. Geosynthetic reinforcement effects are incorporated through the bearing capacity factor Nc and aperture stability modulus J.';
+            doc.text(doc.splitTextToSize(methodText2, contentW - 16), marginL + 10, methY + 13);
+
+            pageFooter(1, 2);
+
+            // ═══════════════════════════════
+            // PAGE 2 — INPUTS + RESULTS
+            // ═══════════════════════════════
+            doc.addPage();
+
+            // Header strip
+            setFill(C.navy); rect(0, 0, W, 20);
+            setFill(C.geoBlue); rect(0, 18, W, 2);
+            setFill(C.geoRed); rect(0, 19.5, W, 0.8);
+            doc.setFontSize(10); doc.setFont('helvetica', 'bold'); setTxt(C.white);
+            doc.text('Giroud–Han Design Report', marginL, 12);
+            label((projName !== '—' ? projName : 'Design Calculation') + '  ·  ' + today, marginL, 17, 6.8, [155, 180, 225]);
+            label('Page 2 of 2', W - marginR, 12, 7.5, [155, 180, 225], 'right');
+
+            let y = 27;
+
+            // ── DESIGN INPUTS (no notes column)
+            setFill(C.geoBlue); rect(marginL, y, contentW, 7, 2);
+            doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); setTxt(C.white);
+            doc.text('DESIGN INPUTS', marginL + 5, y + 5);
+            y += 10;
+
+            const reinfLabel = reinf === 'none' ? 'None (unreinforced)'
+                : reinf === 'geotextile' ? 'Geotextile (Nc = 5.14)'
+                    : `Geogrid — J = ${J} m·N/° (Nc = 5.71)`;
+
+            const inputData = [
+                ['Wheel Load P', P + ' kN'],
+                ['Tire Contact Pressure p', p_tire + ' kPa'],
+                ['Number of Axle Passes N', N],
+                ['CBRsg', String(CBRsg)],
+                ['CBRbc', String(CBRbc)],
+                ['Allowable Rut Depth s', s + ' mm'],
+                ['Reinforcement Type', reinfLabel],
+            ];
+
+            doc.autoTable({
+                startY: y,
+                head: [['Parameter', 'Value']],
+                body: inputData,
+                margin: { left: marginL, right: marginR },
+                headStyles: { fillColor: [0, 40, 105], textColor: C.white, fontStyle: 'bold', fontSize: 7.5 },
+                bodyStyles: { fontSize: 8, textColor: C.darktext },
+                alternateRowStyles: { fillColor: [238, 244, 255] },
+                columnStyles: {
+                    0: { cellWidth: 90, fontStyle: 'bold' },
+                    1: { cellWidth: contentW - 90 },
+                },
+                tableLineColor: C.border,
+                tableLineWidth: 0.2,
+                didDrawCell: function(data) {
+                    if (data.section !== 'body' || data.column.index !== 0) return;
+                    const subMap = { 'CBRsg': ['CBR', 'sg'], 'CBRbc': ['CBR', 'bc'] };
+                    const match = subMap[data.cell.raw];
+                    if (!match) return;
+                    // Overwrite the plain text with subscript rendering
+                    const [base, sub] = match;
+                    const mainSz = 8, subSz = 5.3;
+                    const pad = data.cell.padding('left');
+                    const tx = data.cell.x + pad;
+                    const ty = data.cell.y + data.cell.height / 2 + 1.5;
+                    doc.setFillColor(data.row.index % 2 === 0 ? 238 : 255, data.row.index % 2 === 0 ? 244 : 255, data.row.index % 2 === 0 ? 255 : 255);
+                    doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+                    doc.setFontSize(mainSz); doc.setFont('helvetica', 'bold'); doc.setTextColor(...C.darktext);
+                    doc.text(base, tx, ty);
+                    const baseW = doc.getTextWidth(base);
+                    doc.setFontSize(subSz); doc.setFont('helvetica', 'bold');
+                    doc.text(sub, tx + baseW, ty + 1.5);
+                },
+            });
+            y = doc.lastAutoTable.finalY + 10;
+
+            // ── DESIGN RESULTS SUMMARY (no fE)
+            setFill(C.geoRed); rect(marginL, y, contentW, 7, 2);
+            doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); setTxt(C.white);
+            doc.text('DESIGN RESULTS SUMMARY', marginL + 5, y + 5);
+            y += 10;
+
+            const MIN_H = 0.10; // 10 cm minimum recommended base course
+            const h_u_eff = (h_u === null || h_u < MIN_H) ? MIN_H : h_u;
+            const h_u_isMin = (h_u === null || h_u < MIN_H);
+
+            const outcomes2 = [];
+            outcomes2.push({
+                label: 'UNREINFORCED THICKNESS',
+                value: fmt(h_u_eff * 100, 1) + ' cm',
+                sub: h_u_isMin ? 'Minimum recommended' : fmt(h_u_eff, 3) + ' m',
+                color: C.geoBlue
+            });
+            if (reinf !== 'none') {
+                const h_r_eff = (h_r_calc === null || h_r_calc < MIN_H) ? MIN_H : h_r_calc;
+                const h_r_isMin = (h_r_calc === null || h_r_calc < MIN_H);
+                const saving = Math.round((1 - h_r_eff / h_u_eff) * 100);
+                outcomes2.push({
+                    label: 'REINFORCED THICKNESS',
+                    value: fmt(h_r_eff * 100, 1) + ' cm',
+                    sub: h_r_isMin ? 'Minimum recommended' : fmt(h_r_eff, 3) + ' m',
+                    color: C.green
+                });
+                if (saving > 0) outcomes2.push({ label: 'THICKNESS SAVING', value: saving + '%', sub: fmt(h_u_eff, 3) + ' → ' + fmt(h_r_eff, 3) + ' m', color: C.geoRed });
+            }
+
+            const numCards = outcomes2.length;
+            const cardW = numCards > 0 ? (contentW - (numCards - 1) * 6) / numCards : contentW;
+            outcomes2.forEach((o, i) => {
+                const bxc = marginL + i * (cardW + 6);
+                setFill([244, 248, 255]); rect(bxc, y, cardW, 28, 3);
+                doc.setLineWidth(0.5); setStroke(o.color);
+                doc.roundedRect(bxc, y, cardW, 28, 3, 3, 'S');
+                setFill(o.color); rect(bxc, y, cardW, 4, 2);
+                setFill(o.color); rect(bxc, y + 2, cardW, 2);
+                label(o.label, bxc + cardW / 2, y + 11, 5.5, [95, 112, 140], 'center');
+                doc.setFontSize(14); doc.setFont('helvetica', 'bold'); setTxt(C.darktext);
+                doc.text(o.value, bxc + cardW / 2, y + 21, { align: 'center' });
+                label(o.sub, bxc + cardW / 2, y + 26, 6, [115, 130, 155], 'center');
+            });
+            y += 35;
+
+            // ── CROSS-SECTION ILLUSTRATIONS
+            setFill([238, 244, 255]); rect(marginL, y, contentW, 7, 2);
+            doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); setTxt(C.geoBlue);
+            doc.text('DESIGN CROSS-SECTIONS ', marginL + 5, y + 5);
+            y += 10;
+
+            // Scale: largest base course (h_u) maps to 27mm on paper
+            const maxHref = Math.max(h_u || 0.3, 0.2);
+            const scaleFactor = 27 / maxHref;
+
+            const illBoxH = 80;
+            const illGap = 5;
+            const illW2 = (contentW - 2 * illGap) / 3;
+
+            const h_r_ill = h_r_show || (h_u ? h_u * 0.72 : 0.3);
+
+            ['subgrade', 'unreinforced', 'reinforced'].forEach((caseType, idx) => {
+                const illBx = marginL + idx * (illW2 + illGap);
+                const isSelected = (reinf === 'none' && caseType === 'unreinforced') ||
+                                   (reinf !== 'none' && caseType === 'reinforced');
+                drawIllustration(doc, illBx, y, illW2, illBoxH, caseType, h_u, h_r_ill, reinfType, scaleFactor, CBRsg, C, isSelected);
+            });
+            y += illBoxH + 6;
+
+            // Scale note
+            label('* Cross-sections are drawn to the same vertical scale. Subgrade depth is for illustration only).', marginL, y, 5.8, C.muted);
+
+            pageFooter(2, 2);
+
+            // ── Save
+            const safeName = (projName !== '—' ? projName.replace(/[^a-zA-Z0-9_-]/g, '_') : 'GiroudHan') + '_Design_Report.pdf';
+            doc.save(safeName);
+        }
+
+        function calcR(P, p) { return Math.sqrt(P / (Math.PI * p)); }
+        function calcRE(CBRbc, CBRsg) { return Math.min(3.48 * Math.pow(CBRbc, 0.3) / CBRsg, 5.0); }
+        function calcFE(RE) { return 1 + 0.204 * (RE - 1); }
+        function calcM(s, h, r) {
+            const fs = 75;
+            return (s / fs) * (1 - 0.9 * Math.exp(-Math.pow(r / h, 2)));
+        }
+        function calcPh0(s, r, Nc, CBRsg) {
+            const fs = 75, fC = 30;
+            return (s / fs) * Math.PI * r * r * Nc * fC * CBRsg;
+        }
+        function calcH(h_assumed, P, p_tire, N, s, r, fE, Nc, J, CBRsg) {
+            const m = calcM(s, h_assumed, r);
+            const fC = 30;
+            const rh = r / h_assumed;
+            const num = 0.868 + (0.661 - 1.006 * J * J) * Math.pow(rh, 1.5) * Math.log10(N);
+            const inner = Math.sqrt(P / (Math.PI * r * r) / (m * Nc * fC * CBRsg)) - 1;
+            if (inner <= 0 || num <= 0) return null;
+            return (num / fE) * inner * r;
+        }
+        function iterate(P, p_tire, N, s, r, fE, Nc, J, CBRsg) {
+            const rows = [];
+            let h = 0.40;
+            for (let i = 0; i < 20; i++) {
+                const m = calcM(s, h, r);
+                const h_new = calcH(h, P, p_tire, N, s, r, fE, Nc, J, CBRsg);
+                rows.push({ iter: i + 1, h_assumed: h, m, h_calc: h_new });
+                if (h_new === null) break;
+                if (Math.abs(h_new - h) < 0.005) { rows[rows.length - 1].converged = true; break; }
+                h = h_new;
+            }
+            const last = rows[rows.length - 1];
+            return { rows, h_final: last.h_calc !== null ? Math.max(last.h_calc, 0.10) : null };
+        }
+
+        // ── Formatting helpers
+        function fmt(v, dec = 3) { return v != null ? v.toFixed(dec) : 'N/A'; }
+        function m2cm(v) { return v != null ? (v * 100).toFixed(1) + ' cm' : 'N/A'; }
+
+        function alert_html(type, icon, text) {
+            return `<div class="alert ${type}"><div class="alert-icon">${icon}</div><div>${text}</div></div>`;
+        }
+        function param_html(k, v) {
+            return `<div class="param-row"><span class="pk">${k}</span><span class="pv">${v}</span></div>`;
+        }
+        function iter_table_html(rows) {
+            let html = `<table class="iter-table">
+    <tr><th>Iteration</th><th>h assumed (m)</th><th>m</th><th>h calculated (m)</th></tr>`;
+            rows.forEach(r => {
+                const cls = r.converged ? 'class="converged"' : '';
+                const hc = r.h_calc != null ? fmt(r.h_calc) : '—';
+                const tick = r.converged ? ' ✓' : '';
+                html += `<tr ${cls}><td>#${r.iter}</td><td>${fmt(r.h_assumed)}</td><td>${fmt(r.m)}</td><td>${hc}${tick}</td></tr>`;
+            });
+            html += '</table>';
+            return html;
+        }
+
+        // ── MAIN
+        function runDesign() {
+            const P = parseFloat(document.getElementById('P').value);
+            const p_tire = parseFloat(document.getElementById('p_tire').value);
+            const N = parseFloat(document.getElementById('N').value);
+            const CBRsg = parseFloat(document.getElementById('CBRsg').value);
+            const CBRbc = parseFloat(document.getElementById('CBRbc').value);
+            const s = parseFloat(document.getElementById('s').value);
+            const reinf = document.querySelector('input[name="reinf"]:checked').value;
+            const J = reinf === 'geogrid' ? parseFloat(document.getElementById('J').value) : 0;
+            const Nc_r = reinf === 'none' ? 3.14 : (reinf === 'geotextile' ? 5.14 : 5.71);
+            const Nc_u = 3.14;
+
+            // Show results panel
+            document.getElementById('empty-state').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+
+            let alerts = '';
+
+            // ── Validity checks
+            if (CBRsg >= 5.0) alerts += alert_html('error', '⛔', `<strong>Invalid:</strong> Subgrade CBR = ${CBRsg} ≥ 5.0. Method not applicable. Use paved road design.`);
+            if (s < 50 || s > 100) alerts += alert_html('error', '⛔', `<strong>Invalid:</strong> Rut depth s = ${s} mm is outside the valid range [50–100 mm].`);
+            if (reinf === 'geogrid' && J >= 0.8) alerts += alert_html('error', '⛔', `<strong>Invalid:</strong> J = ${J} m·N/° ≥ 0.8. The term (0.661 − 1.006·J²) becomes negative. New calibration required.`);
+            if (N > 100000) alerts += alert_html('warn', '⚠️', `<strong>Warning:</strong> N = ${N.toLocaleString()} > 100,000. This exceeds the typical design range. Results may be unreliable — base course failure mode may govern.`);
+            if (s > 75) alerts += alert_html('warn', '⚠️', '<strong>Note:</strong> s > 75 mm — verify m ≤ 1.0 after calculation. If m > 1, increase h or reduce s.');
+            if (CBRsg >= 3) alerts += alert_html('info', 'ℹ️', 'Subgrade CBR ≥ 3. Reinforcement benefit may be limited. Method valid up to CBR = 5.');
+
+            document.getElementById('alerts-container').innerHTML = alerts;
+
+            // Stop if critical errors
+            if (CBRsg >= 5.0 || s < 50 || s > 100 || (reinf === 'geogrid' && J >= 0.8)) return;
+
+            // ── Preliminary calcs
+            const r = calcR(P, p_tire);
+            const RE = calcRE(CBRbc, CBRsg);
+            const fE = calcFE(RE);
+            const cu = 30 * CBRsg;
+
+            const prelim = [
+                ['r = √(P/πp)', `${fmt(r)} m`],
+                ['p = P/(π·r²)', `${fmt(P / (Math.PI * r * r), 1)} kPa`],
+                ['cu = 30 × CBRsg', `${cu.toFixed(1)} kPa`],
+                ['RE = min(3.48·CBRbc⁰·³/CBRsg, 5)', `${fmt(RE, 3)} → ${RE === 5.0 ? 'capped at 5.0' : 'not capped'}`],
+                ['fE = 1 + 0.204×(RE−1)', fmt(fE, 4)],
+            ];
+            document.getElementById('prelim-grid').innerHTML = prelim.map(([k, v]) => param_html(k, v)).join('');
+
+            // ── Step 1: bearing capacity checks
+            const Ph0_unreinf = calcPh0(s, r, 3.14, CBRsg);
+            const Ph0_gtx = calcPh0(s, r, 5.14, CBRsg);
+            const Ph0_ggd = calcPh0(s, r, 5.71, CBRsg);
+
+            let step1html = `<div class="formula-box">Ph=0 = (s/75) × π×r² × Nc × 30 × CBRsg</div>`;
+            step1html += `<div class="param-grid">`;
+            step1html += param_html('Ph=0 (unreinforced, Nc=3.14)', `${fmt(Ph0_unreinf, 2)} kN`);
+            step1html += param_html('Ph=0 (geotextile, Nc=5.14)', `${fmt(Ph0_gtx, 2)} kN`);
+            step1html += param_html('Ph=0 (geogrid, Nc=5.71)', `${fmt(Ph0_ggd, 2)} kN`);
+            step1html += param_html('Wheel load P', `${P} kN`);
+            step1html += `</div>`;
+
+            if (P <= Ph0_unreinf) {
+                step1html += alert_html('ok', '✅', `P = ${P} kN ≤ Ph=0,unreinforced = ${fmt(Ph0_unreinf, 2)} kN. <strong>No base course needed.</strong> Use minimum h = 0.10 m to protect subgrade.`);
+            } else {
+                step1html += alert_html('info', '📐', `P = ${P} kN > Ph=0,unreinforced = ${fmt(Ph0_unreinf, 2)} kN. Base course required — proceed to Step 2.`);
+            }
+            document.getElementById('step1-content').innerHTML = step1html;
+
+            // ── Step 2: iterations — unreinforced
+            const res_u = iterate(P, p_tire, N, s, r, fE, Nc_u, 0, CBRsg);
+            document.getElementById('iter-unreinf-content').innerHTML = iter_table_html(res_u.rows);
+
+            const h_u = res_u.h_final;
+            const m_u = h_u ? calcM(s, h_u, r) : null;
+
+            // ── Step 2: iterations — reinforced (if not unreinforced)
+            let h_r = null, m_r = null, res_r = null;
+            const isReinf = (reinf !== 'none');
+            if (isReinf) {
+                res_r = iterate(P, p_tire, N, s, r, fE, Nc_r, J, CBRsg);
+                h_r = res_r.h_final;
+                m_r = h_r ? calcM(s, h_r, r) : null;
+
+                const reinfLabel = reinf === 'geotextile'
+                    ? 'Geotextile — J=0 · Nc=5.14'
+                    : `Geogrid — J=${J} m·N/° · Nc=5.71`;
+                document.getElementById('iter-reinf-title').innerHTML =
+                    `Step 2 — Iterations: Reinforced <span class="tag">${reinfLabel}</span>`;
+                document.getElementById('iter-reinf-content').innerHTML = iter_table_html(res_r.rows);
+                document.getElementById('iter-reinf-block').style.display = 'block';
+            } else {
+                document.getElementById('iter-reinf-block').style.display = 'none';
+            }
+
+            // ── Step 3: m check
+            let mhtml = '';
+            const hmin = s > 75 ? r / Math.sqrt(Math.log(0.9 / (1 - 75 / s))) : null;
+
+            if (h_u) {
+                const mOk_u = m_u <= 1.0;
+                mhtml += `<div class="param-grid" style="margin-bottom:12px">`;
+                mhtml += param_html('h (unreinforced)', `${fmt(h_u)} m`);
+                mhtml += param_html('m at h (unreinforced)', `${fmt(m_u, 4)}`);
+                if (isReinf && h_r) {
+                    mhtml += param_html('h (reinforced)', `${fmt(h_r)} m`);
+                    mhtml += param_html('m at h (reinforced)', `${fmt(m_r, 4)}`);
+                }
+                if (hmin) mhtml += param_html('hmin (s > 75mm)', `${fmt(hmin)} m`);
+                mhtml += `</div>`;
+                const mOk = !isReinf ? mOk_u : (mOk_u && m_r <= 1.0);
+                if (mOk) {
+                    mhtml += alert_html('ok', '✅', 'All mobilisation coefficients m ≤ 1.0. Design is valid.');
+                } else {
+                    mhtml += alert_html('error', '⛔', 'm > 1.0 detected. Increase base course thickness or reduce allowable rut depth.');
+                }
+            }
+            document.getElementById('mcheck-content').innerHTML = mhtml;
+
+            // ── Outcome cards
+            const cards = [];
+            if (h_u !== null) {
+                cards.push({ label: 'Unreinforced h', value: fmt(h_u * 100, 1), unit: 'cm', sub: `${fmt(h_u)} m`, color: 'blue' });
+            }
+            if (isReinf && h_r !== null) {
+                const saving = h_u && h_r ? Math.round((1 - h_r / h_u) * 100) : null;
+                cards.push({ label: 'Reinforced h', value: fmt(h_r * 100, 1), unit: 'cm', sub: `${fmt(h_r)} m`, color: 'green' });
+                if (saving !== null) {
+                    cards.push({ label: 'Thickness Saving', value: saving + '%', unit: 'reduction', sub: `${fmt(h_u)} → ${fmt(h_r)} m`, color: 'gold' });
+                }
+            }
+            // fE card intentionally omitted from display
+
+            document.getElementById('outcome-grid').innerHTML = cards.map(c => `
+    <div class="outcome-card ${c.color}">
+      <div class="card-label">${c.label}</div>
+      <div class="card-value">${c.value}</div>
+      <div class="card-unit">${c.unit}</div>
+      <div class="card-sub">${c.sub}</div>
+    </div>`).join('');
+
+            // ── Comparison bar
+            if (isReinf && h_u && h_r) {
+                document.getElementById('comparison-block').style.display = 'block';
+                const maxH = Math.max(h_u, h_r);
+                document.getElementById('comparison-content').innerHTML = `
+      <div class="comp-row">
+        <div class="comp-header">
+          <span class="comp-label">Unreinforced</span>
+          <span class="comp-val">${fmt(h_u * 100, 1)} cm</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill unreinf" style="width:${(h_u / maxH * 100).toFixed(1)}%"></div></div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-header">
+          <span class="comp-label">${reinf === 'geotextile' ? 'Geotextile' : 'Geogrid (J=' + J + ')'}  reinforced</span>
+          <span class="comp-val">${fmt(h_r * 100, 1)} cm</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill reinf" style="width:${(h_r / maxH * 100).toFixed(1)}%"></div></div>
+      </div>
+    `;
+            } else {
+                document.getElementById('comparison-block').style.display = 'none';
+            }
+
+            // ── Subtitle
+            const reinfStr = reinf === 'none' ? 'Unreinforced' : (reinf === 'geotextile' ? 'Geotextile-reinforced' : `Geogrid-reinforced (J=${J})`);
+            document.getElementById('res-subtitle').textContent =
+                `P=${P} kN · p=${p_tire} kPa · N=${N.toLocaleString()} passes · CBRsg=${CBRsg} · CBRbc=${CBRbc} · s=${s} mm · ${reinfStr}`;
+            document.getElementById('res-title').textContent = 'Design Results';
+
+            // Enable PDF export button
+            document.getElementById('pdf-btn').disabled = false;
+        }
+    </script>
+</body>
+
+</html>
